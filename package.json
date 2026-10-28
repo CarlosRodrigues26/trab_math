@@ -1,0 +1,21 @@
+{
+  "name": "pa-desafio-cartas",
+  "version": "1.0.0",
+  "description": "Jogo educativo de quiz sobre Progressao Aritmetica para alunos do ensino medio.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "matematica",
+    "quiz",
+    "progressao-aritmetica",
+    "educacao",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PA, O DESAFIO MATEMÁTICO</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="bg-glow bg-glow-1" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow-2" aria-hidden="true"></div>
+    <div class="bg-symbols" aria-hidden="true"></div>
+    <div class="grid-overlay" aria-hidden="true"></div>
+
+    <main class="app-shell">
+      <section id="home-screen" class="screen active" aria-labelledby="game-title">
+        <div class="hero-card glass">
+          <h1 id="game-title">PA, O DESAFIO MATEMÁTICO</h1>
+          <h2 class="subtitle">Recupere cartas perdidas resolvendo desafios de Progressao Aritmetica</h2>
+
+          <p class="story">
+            Em um arquivo digital esquecido, as cartas da Sequencia Mestra foram espalhadas.
+            Voce e um explorador matemático e precisa recuperar cada carta vencendo desafios de PA.
+            Cada acerto fortalece sua jornada e revela novos passos da sequencia.
+          </p>
+
+          <div class="home-showcase" aria-hidden="true">
+            <div class="showcase-left">
+              <div class="show-badge">10 cartas por partida</div>
+              <div class="show-badge">30 desafios de PA</div>
+              <div class="show-badge">Feedback com resolucao</div>
+              <div class="show-badge">Pontuacao ate 1000</div>
+            </div>
+            <div class="showcase-right">
+              <div class="preview-card">Carta PA<br /><span>a_n = a1 + (n - 1)r</span></div>
+              <div class="preview-card">Missao<br /><span>Recupere a sequencia</span></div>
+              <div class="preview-card">Meta<br /><span>Maximize seus acertos</span></div>
+            </div>
+          </div>
+
+          <div class="hero-actions">
+            <button id="start-btn" class="btn btn-primary">JOGAR AGORA</button>
+            <button id="how-to-play-btn" class="btn btn-secondary">COMO JOGAR</button>
+          </div>
+
+          <div class="mini-math-row" aria-hidden="true">
+            <span>a1, a2, a3, ...</span>
+            <span>r = a2 - a1</span>
+            <span>an = a1 + (n - 1)r</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="tutorial-screen" class="screen" aria-labelledby="tutorial-title">
+        <div class="content-card glass">
+          <h2 id="tutorial-title">Como Jogar e Revisao Rapida de PA</h2>
+
+          <div class="tutorial-grid">
+            <article class="tutorial-block">
+              <h3>Regras do jogo</h3>
+              <ol>
+                <li>O objetivo e resolver desafios sobre progressao aritmetica.</li>
+                <li>Cada carta contem uma questao matematica.</li>
+                <li>Cada questao possui quatro alternativas.</li>
+                <li>Selecione uma alternativa e confirme a resposta.</li>
+                <li>O jogo informa se a resposta esta correta ou incorreta.</li>
+                <li>Se errar, voce ve a explicacao matematica da resolucao.</li>
+                <li>Acertos valem pontos.</li>
+                <li>Cada partida tem 10 questoes.</li>
+                <li>As 10 questoes sao sorteadas de um banco com 30 questoes.</li>
+                <li>No final, voce ve seu desempenho e pode jogar novamente.</li>
+              </ol>
+            </article>
+
+            <article class="tutorial-block">
+              <h3>Conceitos de Progressao Aritmetica</h3>
+              <p>
+                Uma progressao aritmetica e uma sequencia em que a diferenca entre termos consecutivos e constante.
+                Essa diferenca constante e chamada de razao.
+              </p>
+
+              <div class="formula-box">
+                <p><strong>Razao:</strong> r = a2 - a1</p>
+                <p><strong>Termo geral:</strong> an = a1 + (n - 1)r</p>
+                <p><strong>Soma dos n primeiros termos:</strong> Sn = n(a1 + an) / 2</p>
+              </div>
+
+              <ul>
+                <li>a1: primeiro termo.</li>
+                <li>an: termo na posicao n.</li>
+                <li>n: posicao do termo ou quantidade de termos.</li>
+                <li>r: razao da progressao aritmetica.</li>
+                <li>Sn: soma dos n primeiros termos.</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="row-actions">
+            <button id="back-home-from-tutorial" class="btn btn-secondary">VOLTAR AO INICIO</button>
+            <button id="start-from-tutorial" class="btn btn-primary">INICIAR PARTIDA</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="game-screen" class="screen" aria-labelledby="question-title">
+        <div class="hud glass">
+          <div class="hud-item"><span>Questao</span><strong id="hud-question">1/5</strong></div>
+          <div class="hud-item"><span>Pontos</span><strong id="hud-score">0</strong></div>
+          <div class="hud-item"><span>Acertos</span><strong id="hud-correct">0</strong></div>
+          <div class="hud-item"><span>Erros</span><strong id="hud-errors">0</strong></div>
+        </div>
+
+        <div class="progress-track" aria-label="Progresso da partida">
+          <div id="progress-bar" class="progress-fill"></div>
+        </div>
+
+        <article class="question-card glass" id="question-card">
+          <header class="question-header">
+            <span id="difficulty-badge" class="difficulty">Nivel: Facil</span>
+            <span id="question-index" class="question-index">Carta 1 de 5</span>
+          </header>
+
+          <h3 id="question-title">Carregando desafio...</h3>
+          <div id="options-container" class="options"></div>
+
+          <div class="row-actions">
+            <button id="confirm-answer-btn" class="btn btn-primary">CONFIRMAR RESPOSTA</button>
+            <button id="next-question-btn" class="btn btn-secondary hidden">PROXIMA CARTA</button>
+          </div>
+
+          <section id="feedback-panel" class="feedback hidden" aria-live="polite">
+            <h4 id="feedback-title"></h4>
+            <p id="feedback-message"></p>
+            <div id="explanation-text" class="explanation"></div>
+          </section>
+        </article>
+      </section>
+
+      <section id="result-screen" class="screen" aria-labelledby="result-title">
+        <div class="result-card glass">
+          <h2 id="result-title">Jornada Concluida</h2>
+          <p id="result-story"></p>
+
+          <div class="result-grid">
+            <div class="result-item"><span>Pontuacao final</span><strong id="result-score">0</strong></div>
+            <div class="result-item"><span>Acertos</span><strong id="result-correct">0</strong></div>
+            <div class="result-item"><span>Erros</span><strong id="result-errors">0</strong></div>
+            <div class="result-item"><span>Aproveitamento</span><strong id="result-rate">0%</strong></div>
+          </div>
+
+          <p id="result-motivation" class="motivation"></p>
+
+          <section class="review-box">
+            <h3>Review das cartas da jornada</h3>
+            <p class="review-subtitle">Confira cada questao, sua resposta e a resolucao completa.</p>
+            <div id="result-review-list" class="review-list"></div>
+          </section>
+
+          <div class="row-actions">
+            <button id="play-again-btn" class="btn btn-primary">JOGAR NOVAMENTE</button>
+            <button id="back-home-btn" class="btn btn-secondary">VOLTAR AO INICIO</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="js/questions.js"></script>
+    <script src="js/game.js"></script>
+  </body>
+</html>
