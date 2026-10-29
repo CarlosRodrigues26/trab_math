@@ -273,7 +273,7 @@ function shuffleArray(items) {
 
 function validateQuestionBank(questions) {
   if (!Array.isArray(questions) || questions.length < 30) {
-    throw new Error("Banco de questoes invalido: e necessario ter ao menos 30 questoes.");
+    throw new Error("Banco de questões inválido: e necessário ter ao menos 30 questões.");
   }
 
   const ids = new Set();
@@ -288,7 +288,7 @@ function validateQuestionBank(questions) {
     }
 
     if (typeof q.correctIndex !== "number" || q.correctIndex < 0 || q.correctIndex > 3) {
-      throw new Error(`Questao ${q.id} possui gabarito invalido.`);
+      throw new Error(`Questao ${q.id} possui gabarito inválido.`);
     }
   });
 }
@@ -328,9 +328,9 @@ function buildResultReview() {
       ${
         entry.isCorrect
           ? ""
-          : `<p class="review-why-wrong">Voce escolheu uma alternativa diferente da correta. Compare sua escolha com o calculo oficial para identificar onde o raciocinio se desviou.</p>`
+          : `<p class="review-why-wrong">Você escolheu uma alternativa diferente da correta. Compare sua escolha com o calculo oficial para identificar onde o raciociínio se desviou.</p>`
       }
-      <div class="review-explanation"><strong>Resolucao:</strong>\n${entry.question.explanation}</div>
+      <div class="review-explanation"><strong>Resolução:</strong>\n${entry.question.explanation}</div>
     `;
 
     ui.resultReviewList.appendChild(card);
@@ -488,10 +488,10 @@ function showFeedback({ isCorrect, question }) {
 
   if (isCorrect) {
     ui.feedbackMessage.textContent =
-      "Excelente! Voce recuperou esta carta da sequencia. Veja o raciocinio para reforcar seu aprendizado:";
+      "Excelente! Você recuperou esta carta da sequência. Veja o raciocínio para reforcar seu aprendizado:";
   } else {
     const correctText = question.options[question.correctIndex];
-    ui.feedbackMessage.textContent = `A alternativa correta era: ${correctText}. Analise a resolucao abaixo para aprender com o erro.`;
+    ui.feedbackMessage.textContent = `A alternativa correta era: ${correctText}. Analise a resolução abaixo para aprender com o erro.`;
   }
 
   ui.explanationText.textContent = question.explanation;
@@ -507,7 +507,7 @@ function answerCurrentQuestion() {
   if (state.selectedOptionIndex === null) {
     ui.feedbackPanel.classList.remove("hidden");
     ui.feedbackTitle.textContent = "Escolha uma alternativa";
-    ui.feedbackMessage.textContent = "Selecione uma opcao para confirmar sua resposta.";
+    ui.feedbackMessage.textContent = "Selecione uma opção para confirmar sua resposta.";
     ui.explanationText.textContent = "";
     return;
   }
@@ -555,14 +555,14 @@ function goToNextQuestion() {
 
 function motivationByScore(score) {
   if (score === 500) {
-    return "Desempenho maximo! Voce recuperou todas as cartas da Sequencia Mestra com excelencia.";
+    return "Desempenho máximo! Você recuperou todas as cartas da Sequência Mestra com excelência.";
   }
 
   if (score >= 300) {
-    return "Otimo trabalho! Sua estrategia matematica esta forte. Continue praticando para pontuacao maxima.";
+    return "Ótimo trabalho! Sua estratégia matemática está forte. Continue praticando para pontuação máxima.";
   }
 
-  return "Boa jornada! Cada tentativa fortalece seu raciocinio. Revise as explicacoes e tente novamente.";
+  return "Boa jornada! Cada tentativa fortalece seu raciocínio. Revise as explicações e tente novamente.";
 }
 
 function openResultScreen() {
@@ -571,7 +571,7 @@ function openResultScreen() {
 
   ui.progressBar.style.width = "100%";
   ui.resultStory.textContent =
-    "Voce chegou ao cofre central e reuniu as cartas perdidas da progressao. A Sequencia Mestra foi restaurada!";
+    "Você chegou ao cofre central e reuniu as cartas perdidas da progressão. A Sequência Mestra foi restaurada!";
   ui.resultScore.textContent = `${state.score}`;
   ui.resultCorrect.textContent = `${state.correctCount}`;
   ui.resultErrors.textContent = `${state.errorCount}`;
