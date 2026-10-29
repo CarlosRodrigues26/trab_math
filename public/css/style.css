@@ -371,6 +371,24 @@ body {
   border: 1px solid rgba(246, 168, 205, 0.44);
 }
 
+.difficulty.difficulty-easy {
+  color: #206445;
+  background: rgba(127, 227, 164, 0.35);
+  border-color: rgba(83, 181, 122, 0.6);
+}
+
+.difficulty.difficulty-medium {
+  color: #7a5713;
+  background: rgba(255, 236, 166, 0.78);
+  border-color: rgba(225, 177, 82, 0.65);
+}
+
+.difficulty.difficulty-hard {
+  color: #8d2734;
+  background: rgba(255, 177, 177, 0.46);
+  border-color: rgba(223, 104, 118, 0.72);
+}
+
 .options {
   margin-top: 14px;
   display: grid;
@@ -491,6 +509,17 @@ body {
   border-left: 3px solid #ff9ec8;
   padding-left: 10px;
   color: #7e4562;
+}
+
+.journey-summary {
+  margin-top: 14px;
+  border-radius: 12px;
+  border: 1px dashed rgba(246, 168, 204, 0.8);
+  background: rgba(255, 252, 246, 0.82);
+  color: #6d3f56;
+  padding: 12px;
+  line-height: 1.5;
+  font-weight: 700;
 }
 
 .review-box {

@@ -1,5 +1,6 @@
 const TOTAL_QUESTIONS_PER_MATCH = 10;
 const POINTS_PER_CORRECT = 100;
+const STORAGE_KEY = "pa_desafio_save_v1";
 
 const screens = {
   home: document.getElementById("home-screen"),
@@ -37,6 +38,7 @@ const ui = {
   resultRate: document.getElementById("result-rate"),
   resultMotivation: document.getElementById("result-motivation"),
   resultReviewList: document.getElementById("result-review-list"),
+  resultJourneySummary: document.getElementById("result-journey-summary"),
   questionCard: document.getElementById("question-card")
 };
 
@@ -59,6 +61,130 @@ function showScreen(screenName) {
   Object.values(screens).forEach((screen) => screen.classList.remove("active"));
   screens[screenName].classList.add("active");
   ensureMusicForScreen(screenName);
+  saveGameState(screenName);
+}
+
+function getQuestionById(questionId) {
+  return PA_QUESTIONS.find((q) => q.id === questionId);
+}
+
+function getPersistedScreen(defaultScreen = "home") {
+  const activeId = document.querySelector(".screen.active")?.id;
+  if (activeId === "home-screen") return "home";
+  if (activeId === "tutorial-screen") return "tutorial";
+  if (activeId === "game-screen") return "game";
+  if (activeId === "result-screen") return "result";
+  return defaultScreen;
+}
+
+function saveGameState(explicitScreen) {
+  try {
+    const payload = {
+      screen: explicitScreen || getPersistedScreen(),
+      selectedQuestions: state.selectedQuestions.map((q) => ({
+        id: q.id,
+        options: [...q.options],
+        correctIndex: q.correctIndex
+      })),
+      selectedQuestionIds: state.selectedQuestions.map((q) => q.id),
+      currentIndex: state.currentIndex,
+      score: state.score,
+      correctCount: state.correctCount,
+      errorCount: state.errorCount,
+      answerLog: state.answerLog.map((entry) => ({
+        questionId: entry.questionId,
+        selectedIndex: entry.selectedIndex,
+        isCorrect: entry.isCorrect
+      }))
+    };
+
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch (error) {
+    console.warn("Nao foi possivel salvar o estado do jogo.", error);
+  }
+}
+
+function loadSavedState() {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (error) {
+    console.warn("Nao foi possivel carregar estado salvo.", error);
+    return null;
+  }
+}
+
+function restoreGameStateFromStorage() {
+  const saved = loadSavedState();
+  if (!saved || !saved.screen) {
+    return false;
+  }
+
+  if (saved.screen === "home" || saved.screen === "tutorial") {
+    showScreen(saved.screen);
+    return true;
+  }
+
+  let mappedQuestions = [];
+  const savedQuestions = Array.isArray(saved.selectedQuestions) ? saved.selectedQuestions : [];
+
+  if (savedQuestions.length === TOTAL_QUESTIONS_PER_MATCH) {
+    mappedQuestions = savedQuestions
+      .map((savedQuestion) => {
+        const baseQuestion = getQuestionById(savedQuestion.id);
+        if (!baseQuestion) {
+          return null;
+        }
+
+        const optionsAreValid = Array.isArray(savedQuestion.options) && savedQuestion.options.length === 4;
+        const validCorrectIndex = Number.isInteger(savedQuestion.correctIndex)
+          && savedQuestion.correctIndex >= 0
+          && savedQuestion.correctIndex <= 3;
+
+        return {
+          ...baseQuestion,
+          options: optionsAreValid ? [...savedQuestion.options] : [...baseQuestion.options],
+          correctIndex: validCorrectIndex ? savedQuestion.correctIndex : baseQuestion.correctIndex
+        };
+      })
+      .filter(Boolean);
+  } else {
+    const questionIds = Array.isArray(saved.selectedQuestionIds) ? saved.selectedQuestionIds : [];
+    if (questionIds.length !== TOTAL_QUESTIONS_PER_MATCH) {
+      showScreen("home");
+      return true;
+    }
+
+    mappedQuestions = questionIds.map((id) => getQuestionById(id)).filter(Boolean);
+  }
+
+  if (mappedQuestions.length !== TOTAL_QUESTIONS_PER_MATCH) {
+    showScreen("home");
+    return true;
+  }
+
+  state.selectedQuestions = mappedQuestions;
+  state.currentIndex = Math.min(Math.max(saved.currentIndex || 0, 0), TOTAL_QUESTIONS_PER_MATCH - 1);
+  state.score = saved.score || 0;
+  state.correctCount = saved.correctCount || 0;
+  state.errorCount = saved.errorCount || 0;
+  state.answerLog = (saved.answerLog || [])
+    .map((entry) => ({
+      questionId: entry.questionId,
+      selectedIndex: entry.selectedIndex,
+      isCorrect: entry.isCorrect
+    }))
+    .filter((entry) => Number.isInteger(entry.questionId));
+
+  if (saved.screen === "game") {
+    renderCurrentQuestion();
+    showScreen("game");
+    return true;
+  }
+
+  openResultScreen();
+  return true;
 }
 
 function playTone({ frequency = 460, duration = 0.07, type = "sine", volume = 0.035 } = {}) {
@@ -271,6 +397,45 @@ function shuffleArray(items) {
   return clone;
 }
 
+function buildBalancedCorrectIndexes(totalQuestions, optionCount = 4) {
+  const indexes = [];
+  const baseCount = Math.floor(totalQuestions / optionCount);
+  const remainder = totalQuestions % optionCount;
+
+  for (let optionIndex = 0; optionIndex < optionCount; optionIndex += 1) {
+    for (let count = 0; count < baseCount; count += 1) {
+      indexes.push(optionIndex);
+    }
+  }
+
+  const extraIndexes = shuffleArray(Array.from({ length: optionCount }, (_, i) => i)).slice(0, remainder);
+  indexes.push(...extraIndexes);
+
+  return shuffleArray(indexes);
+}
+
+function prepareQuestionForMatch(question, targetCorrectIndex) {
+  const correctOption = question.options[question.correctIndex];
+  const wrongOptions = shuffleArray(question.options.filter((_, idx) => idx !== question.correctIndex));
+  const randomizedOptions = [];
+  let wrongPointer = 0;
+
+  for (let idx = 0; idx < question.options.length; idx += 1) {
+    if (idx === targetCorrectIndex) {
+      randomizedOptions.push(correctOption);
+    } else {
+      randomizedOptions.push(wrongOptions[wrongPointer]);
+      wrongPointer += 1;
+    }
+  }
+
+  return {
+    ...question,
+    options: randomizedOptions,
+    correctIndex: targetCorrectIndex
+  };
+}
+
 function validateQuestionBank(questions) {
   if (!Array.isArray(questions) || questions.length < 30) {
     throw new Error("Banco de questões inválido: e necessário ter ao menos 30 questões.");
@@ -303,38 +468,75 @@ function resetMatchState() {
   state.answerLog = [];
   state.musicStep = 0;
 
-  state.selectedQuestions = shuffleArray(PA_QUESTIONS).slice(0, TOTAL_QUESTIONS_PER_MATCH);
+  const pickedQuestions = shuffleArray(PA_QUESTIONS).slice(0, TOTAL_QUESTIONS_PER_MATCH);
+  const balancedCorrectIndexes = buildBalancedCorrectIndexes(TOTAL_QUESTIONS_PER_MATCH, 4);
+
+  state.selectedQuestions = pickedQuestions.map((question, index) =>
+    prepareQuestionForMatch(question, balancedCorrectIndexes[index])
+  );
+}
+
+function getQuestionFromCurrentMatch(questionId) {
+  return state.selectedQuestions.find((question) => question.id === questionId) || getQuestionById(questionId);
 }
 
 function buildResultReview() {
   ui.resultReviewList.innerHTML = "";
 
   state.answerLog.forEach((entry, idx) => {
+    const question = getQuestionFromCurrentMatch(entry.questionId);
+    if (!question) {
+      return;
+    }
+
     const card = document.createElement("article");
     card.className = "review-card";
 
     const statusClass = entry.isCorrect ? "ok" : "error";
-    const statusText = entry.isCorrect ? "Voce acertou esta carta" : "Voce errou esta carta";
+    const statusText = entry.isCorrect ? "Carta recuperada com sucesso" : "Carta nao recuperada";
 
-    const selectedText = entry.question.options[entry.selectedIndex];
-    const correctText = entry.question.options[entry.question.correctIndex];
+    const selectedText = question.options[entry.selectedIndex] ?? "Sem resposta";
+    const correctText = question.options[question.correctIndex];
+
+    const correctAnswerRow = entry.isCorrect
+      ? `<p class="review-row"><strong>Resposta correta:</strong> ${correctText}</p>`
+      : "";
+
+    const explanationBlock = entry.isCorrect
+      ? `<div class="review-explanation"><strong>Resolução:</strong>\n${question.explanation}</div>`
+      : `<p class="review-why-wrong">Voce nao recuperou esta carta nesta tentativa. Tente novamente para desbloquear essa carta na proxima jornada.</p>`;
 
     card.innerHTML = `
-      <h4>Carta ${idx + 1} - ${entry.question.difficulty}</h4>
-      <p class="review-row"><strong>Enunciado:</strong> ${entry.question.statement}</p>
+      <h4>Carta ${idx + 1} - ${question.difficulty}</h4>
+      <p class="review-row"><strong>Enunciado:</strong> ${question.statement}</p>
       <span class="review-status ${statusClass}">${statusText}</span>
       <p class="review-row"><strong>Sua resposta:</strong> ${selectedText}</p>
-      <p class="review-row"><strong>Resposta correta:</strong> ${correctText}</p>
-      ${
-        entry.isCorrect
-          ? ""
-          : `<p class="review-why-wrong">Você escolheu uma alternativa diferente da correta. Compare sua escolha com o calculo oficial para identificar onde o raciociínio se desviou.</p>`
-      }
-      <div class="review-explanation"><strong>Resolução:</strong>\n${entry.question.explanation}</div>
+      ${correctAnswerRow}
+      ${explanationBlock}
     `;
 
     ui.resultReviewList.appendChild(card);
   });
+}
+
+function buildJourneySummary() {
+  const recovered = state.answerLog
+    .map((entry, idx) => ({ ...entry, cardNumber: idx + 1 }))
+    .filter((entry) => entry.isCorrect)
+    .map((entry) => entry.cardNumber);
+
+  const missing = state.answerLog
+    .map((entry, idx) => ({ ...entry, cardNumber: idx + 1 }))
+    .filter((entry) => !entry.isCorrect)
+    .map((entry) => entry.cardNumber);
+
+  const recoveredText = recovered.length ? recovered.join(", ") : "nenhuma";
+  const missingText = missing.length ? missing.join(", ") : "nenhuma";
+
+  ui.resultJourneySummary.textContent =
+    `Parabens, voce coletou as cartas ${recoveredText}. ` +
+    `As cartas ${missingText} ainda nao foram recuperadas. ` +
+    `Jogue novamente para recuperar todas as cartas sagradas da matematica.`;
 }
 
 function populateBackgroundSymbols() {
@@ -425,6 +627,16 @@ function renderCurrentQuestion() {
   clearFeedback();
   ui.nextQuestionBtn.classList.add("hidden");
   ui.confirmAnswerBtn.disabled = false;
+
+  const normalizedDifficulty = String(question.difficulty || "").toLowerCase();
+  ui.difficultyBadge.classList.remove("difficulty-easy", "difficulty-medium", "difficulty-hard");
+  if (normalizedDifficulty.includes("fac")) {
+    ui.difficultyBadge.classList.add("difficulty-easy");
+  } else if (normalizedDifficulty.includes("med")) {
+    ui.difficultyBadge.classList.add("difficulty-medium");
+  } else {
+    ui.difficultyBadge.classList.add("difficulty-hard");
+  }
 
   ui.difficultyBadge.textContent = `Nivel: ${question.difficulty}`;
   ui.questionIndex.textContent = `Carta ${state.currentIndex + 1} de ${TOTAL_QUESTIONS_PER_MATCH}`;
@@ -517,7 +729,7 @@ function answerCurrentQuestion() {
   const isCorrect = state.selectedOptionIndex === question.correctIndex;
 
   state.answerLog.push({
-    question,
+    questionId: question.id,
     selectedIndex: state.selectedOptionIndex,
     isCorrect
   });
@@ -535,6 +747,7 @@ function answerCurrentQuestion() {
   ui.confirmAnswerBtn.disabled = true;
   ui.nextQuestionBtn.classList.remove("hidden");
   updateHUD();
+  saveGameState("game");
 }
 
 function goToNextQuestion() {
@@ -551,14 +764,15 @@ function goToNextQuestion() {
 
   state.currentIndex += 1;
   renderCurrentQuestion();
+  saveGameState("game");
 }
 
 function motivationByScore(score) {
-  if (score === 500) {
+  if (score === 1000) {
     return "Desempenho máximo! Você recuperou todas as cartas da Sequência Mestra com excelência.";
   }
 
-  if (score >= 300) {
+  if (score >= 600) {
     return "Ótimo trabalho! Sua estratégia matemática está forte. Continue praticando para pontuação máxima.";
   }
 
@@ -578,14 +792,17 @@ function openResultScreen() {
   ui.resultRate.textContent = `${hitRate}%`;
   ui.resultMotivation.textContent = motivationByScore(state.score);
   buildResultReview();
+  buildJourneySummary();
 
   showScreen("result");
+  saveGameState("result");
 }
 
 function startGame() {
   resetMatchState();
   renderCurrentQuestion();
   showScreen("game");
+  saveGameState("game");
 }
 
 function bindEvents() {
@@ -606,7 +823,9 @@ function bootstrap() {
     bindEvents();
     bindPerformanceGuards();
     initButtonSounds();
-    showScreen("home");
+    if (!restoreGameStateFromStorage()) {
+      showScreen("home");
+    }
   } catch (error) {
     alert(`Erro ao iniciar o jogo: ${error.message}`);
     console.error(error);
