@@ -100,7 +100,7 @@ function saveGameState(explicitScreen) {
 
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   } catch (error) {
-    console.warn("Nao foi possivel salvar o estado do jogo.", error);
+    console.warn("Não foi possível salvar o estado do jogo.", error);
   }
 }
 
@@ -110,7 +110,7 @@ function loadSavedState() {
     if (!raw) return null;
     return JSON.parse(raw);
   } catch (error) {
-    console.warn("Nao foi possivel carregar estado salvo.", error);
+    console.warn("Não foi possível carregar o estado salvo.", error);
     return null;
   }
 }
@@ -444,16 +444,16 @@ function validateQuestionBank(questions) {
   const ids = new Set();
   questions.forEach((q) => {
     if (ids.has(q.id)) {
-      throw new Error(`ID de questao duplicado detectado: ${q.id}`);
+      throw new Error(`ID de questão duplicado detectado: ${q.id}`);
     }
     ids.add(q.id);
 
     if (!Array.isArray(q.options) || q.options.length !== 4) {
-      throw new Error(`Questao ${q.id} precisa ter exatamente 4 alternativas.`);
+      throw new Error(`Questão ${q.id} precisa ter exatamente 4 alternativas.`);
     }
 
     if (typeof q.correctIndex !== "number" || q.correctIndex < 0 || q.correctIndex > 3) {
-      throw new Error(`Questao ${q.id} possui gabarito inválido.`);
+      throw new Error(`Questão ${q.id} possui gabarito inválido.`);
     }
   });
 }
@@ -493,7 +493,7 @@ function buildResultReview() {
     card.className = "review-card";
 
     const statusClass = entry.isCorrect ? "ok" : "error";
-    const statusText = entry.isCorrect ? "Carta recuperada com sucesso" : "Carta nao recuperada";
+    const statusText = entry.isCorrect ? "Carta recuperada com sucesso" : "Carta não recuperada";
 
     const selectedText = question.options[entry.selectedIndex] ?? "Sem resposta";
     const correctText = question.options[question.correctIndex];
@@ -504,7 +504,7 @@ function buildResultReview() {
 
     const explanationBlock = entry.isCorrect
       ? `<div class="review-explanation"><strong>Resolução:</strong>\n${question.explanation}</div>`
-      : `<p class="review-why-wrong">Voce nao recuperou esta carta nesta tentativa. Tente novamente para desbloquear essa carta na proxima jornada.</p>`;
+      : `<p class="review-why-wrong">Você não recuperou esta carta nesta tentativa. Tente novamente para desbloquear essa carta na próxima jornada.</p>`;
 
     card.innerHTML = `
       <h4>Carta ${idx + 1} - ${question.difficulty}</h4>
@@ -534,9 +534,9 @@ function buildJourneySummary() {
   const missingText = missing.length ? missing.join(", ") : "nenhuma";
 
   ui.resultJourneySummary.textContent =
-    `Parabens, voce coletou as cartas ${recoveredText}. ` +
-    `As cartas ${missingText} ainda nao foram recuperadas. ` +
-    `Jogue novamente para recuperar todas as cartas sagradas da matematica.`;
+    `Parabéns, você coletou as cartas ${recoveredText}. ` +
+    `As cartas ${missingText} ainda não foram recuperadas. ` +
+    `Jogue novamente para recuperar todas as cartas sagradas da matemática.`;
 }
 
 function populateBackgroundSymbols() {
@@ -638,7 +638,7 @@ function renderCurrentQuestion() {
     ui.difficultyBadge.classList.add("difficulty-hard");
   }
 
-  ui.difficultyBadge.textContent = `Nivel: ${question.difficulty}`;
+  ui.difficultyBadge.textContent = `Nível: ${question.difficulty}`;
   ui.questionIndex.textContent = `Carta ${state.currentIndex + 1} de ${TOTAL_QUESTIONS_PER_MATCH}`;
   ui.questionTitle.textContent = question.statement;
 
